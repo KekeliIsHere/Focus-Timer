@@ -1,7 +1,9 @@
 import { useState,useEffect,useRef } from 'react'
+import timerSound from './timer-sounds/fahhhh.mp3';
 
 function Timer(){
     const startTimeRef=useRef();
+    const audioRef=useRef();
     const [time,setTime]=useState(0);
     const [isRunning,setIsRunning]=useState(false);
     const MAX=59;
@@ -9,9 +11,11 @@ function Timer(){
     
     
     useEffect(() => {
-    // This happens once. We save '10' into our storage box.
-        startTimeRef.current = time;
-    }, []);
+        if (!isRunning) {
+            startTimeRef.current = time;
+        }
+        //Save the time when the user edits it (while not running).
+    }, [time, isRunning]);
     
     const hours = Math.floor(time / 3600);
     const minutes = Math.floor((time % 3600) / 60);
@@ -20,14 +24,28 @@ function Timer(){
     //The pad is made for the ,format so that time has that 02, 01, 00 look you get it.
     const pad = (n) => String(n).padStart(2, "0");
 
+    useEffect(() => {
+        audioRef.current = new Audio(timerSound); 
+        // Preload
+        audioRef.current.load();
+    }, []);
 
-    
+    // Update your audio trigger useEffect
+    useEffect(()=>{
+    if(time === 0 && isRunning){
+        console.log("Timer finished, attempting to play...");
+        setIsRunning(false);
+        // Play with error handling
+        if (audioRef.current) {
+            audioRef.current.play()
+                .then(() => console.log("Audio played successfully"))
+                .catch(error => console.error("Audio play failed:", error));
+        }
+    }
+    },[time, isRunning]);
 
     useEffect(() => {
-        let intervalId;
-    
-
-        
+        let intervalId;          
         if (isRunning && time > 0) {
             intervalId = setInterval(() => {
                 setTime(prev => prev - 1);
@@ -77,7 +95,9 @@ function Timer(){
 
 
     function toggleIsRunning(){
-        setIsRunning(!isRunning);   
+        if (time > 0) {
+    setIsRunning(prev => !prev);
+  }  
     }  
 
     function toggleReset(){
@@ -109,8 +129,10 @@ function Timer(){
                 </tr>
 
             </table>
-            <button onClick={toggleIsRunning}>Start/Pause</button> 
-            <button onClick={toggleReset}>Reset</button>     
+            <table>
+                <td><button onClick={toggleIsRunning}>Start/Pause</button></td>
+                <td><button onClick={toggleReset}>Reset</button></td>
+            </table>
         </>     
     );
 }
