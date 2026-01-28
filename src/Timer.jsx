@@ -1,5 +1,5 @@
 import { useState,useEffect,useRef } from 'react'
-import timerSound from './timer-sounds/fahhhh.mp3';
+import timerSound from './timer-sounds/i-got-this-fah.mp3';
 
 function Timer(){
     const startTimeRef=useRef();
@@ -25,23 +25,22 @@ function Timer(){
     const pad = (n) => String(n).padStart(2, "0");
 
     useEffect(() => {
-        audioRef.current = new Audio(timerSound); 
-        // Preload
-        audioRef.current.load();
+        const audio = new Audio(timerSound);
+        audioRef.current = audio;
     }, []);
 
-    // Update your audio trigger useEffect
+    // Reset audio before playing so it can play multiple times
     useEffect(()=>{
-    if(time === 0 && isRunning){
-        console.log("Timer finished, attempting to play...");
-        setIsRunning(false);
-        // Play with error handling
-        if (audioRef.current) {
-            audioRef.current.play()
-                .then(() => console.log("Audio played successfully"))
-                .catch(error => console.error("Audio play failed:", error));
+        if(time === 0 && isRunning){
+            console.log("Timer finished, attempting to play...");
+            setIsRunning(false);
+            if (audioRef.current) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play()
+                    .then(() => console.log("Audio played successfully"))
+                    .catch(error => console.error("Audio play failed:", error));
+            }
         }
-    }
     },[time, isRunning]);
 
     useEffect(() => {
